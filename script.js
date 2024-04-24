@@ -1,28 +1,38 @@
-const chatbotToggler = document.querySelector(".chatbot-toggler");
-const closeBtn = document.querySelector(".close-btn");
-const chatbox = document.querySelector(".chatbox");
-const chatInput = document.querySelector(".chat-input textarea");
-const sendChatBtn = document.querySelector(".chat-input span");
+const chatInput = document.querySelector("#chat-input");
+const sendButton = document.querySelector("#send-btn");
+const chatContainer = document.querySelector(".chat-container");
+const themeButton = document.querySelector("#theme-btn");
+const deleteButton = document.querySelector("#delete-btn");
 
-let userMessage = null; // Variable to store user's message
-const API_KEY = ""; // Paste your API key here
-const inputInitHeight = chatInput.scrollHeight;
+let userText = null;
+const API_KEY = "sk-proj-Z4D3O6LqvlkM0fgwiUzbT3BlbkFJ1kyDrvH8gtJVGNHstlti";
 
-const createChatLi = (message, className) => {
-    // Create a chat <li> element with passed message and className
-    const chatLi = document.createElement("li");
-    chatLi.classList.add("chat", `${className}`);
-    let chatContent = className === "outgoing" ? `<p></p>` : `<span class="material-symbols-outlined">smart_toy</span><p></p>`;
-    chatLi.innerHTML = chatContent;
-    chatLi.querySelector("p").textContent = message;
-    return chatLi; // return chat <li> element
-}
+const loadDataFromLocalStorage = () => {
+    const themeColor = localStorage.getItem("themeColor");
 
-const generateResponse = (chatElement) => {
-    const API_URL = "https://api.openai.com/v1/chat/completions";
-    const messageElement = chatElement.querySelector("p");
+    document.body.classList.toggle("light-mode", themeColor === "light_mode");
+    themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
 
-    // Define the properties and message for the API request
+    const defaultText = `<div class="default-text">
+                            <h1>Hi Welcome to Ridge Chat</h1>
+                            <p>Start a conversation and explore the power of Health AI.<br> Your chat history will be displayed here.</p>
+                        </div>`;
+
+    chatContainer.innerHTML = localStorage.getItem("all-chats") || defaultText;
+    chatContainer.scrollTo(0, chatContainer.scrollHeight); 
+};
+
+const createChatElement = (content, className) => {
+    const chatDiv = document.createElement("div");
+    chatDiv.classList.add("chat", className);
+    chatDiv.innerHTML = content;
+    return chatDiv; 
+};
+
+const getChatResponse = async (incomingChatDiv) => {
+    const API_URL = "https://api.openai.com/v1/completions";
+    const pElement = document.createElement("p");
+
     const requestOptions = {
         method: "POST",
         headers: {
@@ -30,56 +40,115 @@ const generateResponse = (chatElement) => {
             "Authorization": `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [{role: "user", content: userMessage}],
+            model: "text-davinci-003",
+            prompt: userText,
+            max_tokens: 2048,
+            temperature: 0.2,
+            n: 1,
+            stop: null
         })
+    };
+
+    try {
+        const response = await fetch(API_URL, requestOptions);
+        if (!response.ok) {
+            throw new Error("Failed to fetch");
+        }
+        const data = await response.json();
+
+        if (data.choices && data.choices.length > 0 && data.choices[0].text) {
+            pElement.textContent = data.choices[0].text.trim();
+        } else {
+            throw new Error("Invalid response from API");
+        }
+    } catch (error) {
+        console.error("Error fetching response:", error);
+        pElement.classList.add("error");
+        pElement.textContent = "Oops! Something went wrong while retrieving the response. Please try again.";
     }
 
-    // Send POST request to API, get response and set the reponse as paragraph text
-    fetch(API_URL, requestOptions).then(res => res.json()).then(data => {
-        messageElement.textContent = data.choices[0].message.content.trim();
-    }).catch(() => {
-        messageElement.classList.add("error");
-        messageElement.textContent = "Oops! Something went wrong. Please try again.";
-    }).finally(() => chatbox.scrollTo(0, chatbox.scrollHeight));
-}
+    incomingChatDiv.querySelector(".typing-animation").remove();
+    incomingChatDiv.querySelector(".chat-details").appendChild(pElement);
+    localStorage.setItem("all-chats", chatContainer.innerHTML);
+    chatContainer.scrollTo(0, chatContainer.scrollHeight);
+};
 
-const handleChat = () => {
-    userMessage = chatInput.value.trim(); // Get user entered message and remove extra whitespace
-    if(!userMessage) return;
+const copyResponse = async (copyBtn) => {
+    const responseTextElement = copyBtn.parentElement.querySelector("p");
+    try {
+        await navigator.clipboard.writeText(responseTextElement.textContent);
+        copyBtn.textContent = "done";
+        setTimeout(() => copyBtn.textContent = "content_copy", 1000);
+    } catch (error) {
+        console.error("Error copying response:", error);
+    }
+};
 
-    // Clear the input textarea and set its height to default
+const showTypingAnimation = () => {
+    const html = `<div class="chat-content">
+                    <div class="chat-details">
+                        <img src="images/chatbot.jpg" alt="chatbot-img">
+                        <div class="typing-animation">
+                            <div class="typing-dot" style="--delay: 0.2s"></div>
+                            <div class="typing-dot" style="--delay: 0.3s"></div>
+                            <div class="typing-dot" style="--delay: 0.4s"></div>
+                        </div>
+                    </div>
+                    <span class="material-symbols-rounded copy-button">content_copy</span>
+                </div>`;
+    const incomingChatDiv = createChatElement(html, "incoming");
+    chatContainer.appendChild(incomingChatDiv);
+    chatContainer.scrollTo(0, chatContainer.scrollHeight);
+    getChatResponse(incomingChatDiv);
+};
+
+const handleOutgoingChat = () => {
+    userText = chatInput.value.trim();
+    if (!userText) return;
+
     chatInput.value = "";
-    chatInput.style.height = `${inputInitHeight}px`;
+    chatInput.style.height = `${initialInputHeight}px`;
 
-    // Append the user's message to the chatbox
-    chatbox.appendChild(createChatLi(userMessage, "outgoing"));
-    chatbox.scrollTo(0, chatbox.scrollHeight);
-    
-    setTimeout(() => {
-        // Display "Thinking..." message while waiting for the response
-        const incomingChatLi = createChatLi("Thinking...", "incoming");
-        chatbox.appendChild(incomingChatLi);
-        chatbox.scrollTo(0, chatbox.scrollHeight);
-        generateResponse(incomingChatLi);
-    }, 600);
-}
+    const html = `<div class="chat-content">
+                    <div class="chat-details">
+                        <img src="images/user.jpg" alt="user-img">
+                        <p>${userText}</p>
+                    </div>
+                </div>`;
 
-chatInput.addEventListener("input", () => {
-    // Adjust the height of the input textarea based on its content
-    chatInput.style.height = `${inputInitHeight}px`;
+    const outgoingChatDiv = createChatElement(html, "outgoing");
+    chatContainer.querySelector(".default-text")?.remove();
+    chatContainer.appendChild(outgoingChatDiv);
+    chatContainer.scrollTo(0, chatContainer.scrollHeight);
+    setTimeout(showTypingAnimation, 500);
+};
+
+deleteButton.addEventListener("click", () => {
+    if (confirm("Are you sure you want to delete all the chats?")) {
+        localStorage.removeItem("all-chats");
+        loadDataFromLocalStorage();
+    }
+});
+
+themeButton.addEventListener("click", () => {
+    document.body.classList.toggle("light-mode");
+    localStorage.setItem("themeColor", themeButton.innerText);
+    themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
+});
+
+const initialInputHeight = chatInput.scrollHeight;
+
+chatInput.addEventListener("input", () => {   
+    chatInput.style.height =  `${initialInputHeight}px`;
     chatInput.style.height = `${chatInput.scrollHeight}px`;
 });
 
 chatInput.addEventListener("keydown", (e) => {
-    // If Enter key is pressed without Shift key and the window 
-    // width is greater than 800px, handle the chat
-    if(e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+    if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
         e.preventDefault();
-        handleChat();
+        handleOutgoingChat();
     }
 });
 
-sendChatBtn.addEventListener("click", handleChat);
-closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
-chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
+loadDataFromLocalStorage();
+sendButton.addEventListener("click", handleOutgoingChat);
