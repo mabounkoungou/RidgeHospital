@@ -20,6 +20,18 @@
     <link rel="stylesheet" href="assets/css/slick.css">
     <link rel="stylesheet" href="assets/css/nice-select.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+</script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init({
+        publicKey: "nl0sbka5b5tOv-NjK",
+      });
+   })();
+</script>
+
+<script src="script.js"></script>
 </head>
 <!--? Preloader Start -->
 <div id="preloader-active">
@@ -150,7 +162,7 @@
                 <h2 class="contact-title">Get in Touch</h2>
             </div>
             <div class="col-lg-8">
-                <form class="form-contact contact_form" action="contact_process.php" method="post" id="contactForm" novalidate="novalidate">
+                <form class="form-contact contact_form" action="" method="post" id="contactForm" novalidate="novalidate">
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
@@ -174,7 +186,7 @@
                         </div>
                     </div>
                     <div class="form-group mt-3">
-                        <button type="submit" class="button button-contactForm boxed-btn">Send</button>
+                        <button type="submit" class="button button-contactForm boxed-btn" onclick="SendMail()">Send</button>
                     </div>
                 </form>
             </div>
@@ -279,7 +291,7 @@
                             <div class="footer-form">
                                 <div id="mc_embed_signup">
                                     <form target="_blank" action="https://spondonit.us12.list-manage.com/subscribe/post?u=1462626880ade1ac87bd9c93a&amp;id=92a4423d01" method="get" class="subscribe_form relative mail_part" novalidate="true">
-                                        <input type="email" name="EMAIL" id="newsletter-form-email" placeholder=" Email Address " class="placeholder hide-on-focus" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter your email'">
+                                        <input type="email" name="email" id="newsletter-form-email" placeholder=" Email Address " class="placeholder hide-on-focus" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter your email'">
                                         <div class="form-icon">
                                             <button type="submit" name="submit" id="newsletter-submit" class="email_icon newsletter-submit button-contactForm">
                                                 Subscribe
