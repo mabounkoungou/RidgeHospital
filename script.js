@@ -28,7 +28,7 @@ function Subscribe() {
         subscribe: email
     };
 
-    emailjs.send("service_s5egfm5", "template_bgysfm1", parms)
+    emailjs.send("service_wmm816b", "template_6tzbt3p", parms)
         .then(function() {
             // Subscription successful, you can perform any actions here if needed
             alert("Subscription Successful!");
