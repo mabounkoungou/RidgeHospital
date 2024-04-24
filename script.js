@@ -19,3 +19,26 @@ function SendMail(){
             // Optionally handle the error here
         });
 }
+
+
+function Subscribe() {
+    let email = document.getElementById("subscribe").value;
+
+    let parms = {
+        subscribe: email
+    };
+
+    emailjs.send("service_s5egfm5", "template_bgysfm1", parms)
+        .then(function() {
+            // Subscription successful, you can perform any actions here if needed
+            alert("Subscription Successful!");
+            // Clear the input field after successful subscription
+            document.getElementById("subscribe").value = "";
+        })
+        .catch(function(error) {
+            // Subscription failed, handle the error
+            console.error("Subscription failed:", error);
+            // Optionally, provide feedback to the user about the failure
+            alert("Subscription failed. Please try again later.");
+        });
+}
