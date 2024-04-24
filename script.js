@@ -21,10 +21,9 @@ function SendMail(){
 }
 
 function Subscribe() {
-    let email1 = document.getElementById("email1").value;
 
     let parms = {
-        email: email1
+         email : document.getElementById("email1").value
     };
 
     emailjs.send("service_wmm816b", "template_6tzbt3p", parms)
@@ -32,7 +31,7 @@ function Subscribe() {
             // Subscription successful, you can perform any actions here if needed
             alert("Subscription Successful!");
             // Clear the input field after successful subscription
-            document.getElementById("email1").value = "";
+            document.getElementById("email").value = "";
         })
         .catch(function(error) {
             // Subscription failed, handle the error
